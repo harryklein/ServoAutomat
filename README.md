@@ -4,7 +4,24 @@ Bei ServoAutomat handelt es sich um eine Steuerung für einen Servo. Ein Tastend
 Eine Led zeigt an, ob der Ablauf gestartet werden kann.
 
 ## Programmbeschreibung
-
-stateDiagram-v2
-    [*] --> Still
-    Still --> [*]
+```
+ +----------------------------------------------------+
+ |                                                    |
+ +-> START --> WAIT --> DELAY --> NEXT --+ --> STOP --+
+      |                                 |
+      +---------------------------------+
+ ```
+ * START
+   * Setzt die neue Position und die gewüschte Geschwindigkeit 
+   * Setzt den nächsten Status WAIT
+ * WAIT
+   * Wartet auf das Erreichen der Endposition.
+   * Wenn die Endposition erreicht ist: nächster Status DELAY
+ * DELAY
+   * Warte die eingestellte Zeit
+   * Wenn die Zeit verstrichen ist: nächster Status NEXT
+ * NEXT
+   * Wält den nächsten Schritt aus. nächster Status START 
+   * Gibt es keinen weiteren Schritt: Status STOP
+ * STOP
+   * wird verlassen durch Tastendruck, es folgt Status START
