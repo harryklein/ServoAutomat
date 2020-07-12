@@ -8,14 +8,22 @@
 
 #define READY_LED_PIN 10
 
+enum STATE {
+	START = 1, WAIT = 2, DELAY = 3, NEXT = 4, STOP = 5
+};
+long endtime = millis();
+
 struct STEP {
 	int pos;
 	int speed;
 	int delay;
 };
 
+STATE state = START;
 STEP steps[] = { { 40, 40, 5 }, { 120, 10, 5 }, { 150, 20, 5 }, { 90, 30, 5 } };
 size_t length = sizeof(steps) / sizeof(steps[0]);
+
+int counter = 2;
 
 MoToServo servo;
 
@@ -32,47 +40,43 @@ button_t getHW(void) {
 
 MoToButtons Taster1(getHW, 20, 500);  // 20ms Entprellzeit, 500ms für den Unterschied kurz/lang gedrückt.
 
-void init_debug() {
-	Serial.begin(115200);
-}
-
-
-void on(){
+void on() {
 	digitalWrite(READY_LED_PIN, LOW);
 }
 
-void off(){
+void off() {
 	digitalWrite(READY_LED_PIN, HIGH);
 }
 
-void setup() {
-	init_debug();
+void initDebug() {
+	Serial.begin(115200);
+}
 
+void initServo() {
 	STEP step = steps[0];
 	servo.setSpeed(step.speed);
 	servo.attach(SERVO_PIN);
 	servo.write(step.pos);
+}
 
-
-	for (int i = 0; i < anzahlTaster; i++) {
-		pinMode(tasterPinNr[i], INPUT_PULLUP);
-	}
-
+void initStatusLed() {
 	pinMode(READY_LED_PIN, OUTPUT);
 	off();
 }
 
+void initButton() {
+	for (int i = 0; i < anzahlTaster; i++) {
+		pinMode(tasterPinNr[i], INPUT_PULLUP);
+	}
+}
 
+void setup() {
+	initDebug();
 
-
-enum STATE {
-	START = 1, WAIT = 2, DELAY = 3, NEXT = 4, STOP = 5
-};
-
-STATE state = START;
-int counter = 2;
-
-long endtime = millis();
+	initServo();
+	initButton();
+	initStatusLed();
+}
 
 void loop() {
 
@@ -114,7 +118,6 @@ void loop() {
 		// Serial.println("NEXT");
 		counter++;
 
-
 		if (counter >= length) {
 			Serial.println(" == STOP");
 			state = STOP;
@@ -134,9 +137,4 @@ void loop() {
 		}
 		break;
 	}
-
-	// counter 0 1 2 3 4
-	//         x x x x
-	// length 4
-
 }
