@@ -6,6 +6,17 @@
 
 #define BUTTON_PIN 5
 
+#define READY_LED_PIN 10
+
+struct STEP {
+	int pos;
+	int speed;
+	int delay;
+};
+
+STEP steps[] = { { 40, 40, 5 }, { 120, 10, 5 }, { 150, 20, 5 }, { 90, 30, 5 } };
+size_t length = sizeof(steps) / sizeof(steps[0]);
+
 MoToServo servo;
 
 const byte tasterPinNr[] = { BUTTON_PIN };
@@ -25,23 +36,35 @@ void init_debug() {
 	Serial.begin(115200);
 }
 
+
+void on(){
+	digitalWrite(READY_LED_PIN, LOW);
+}
+
+void off(){
+	digitalWrite(READY_LED_PIN, HIGH);
+}
+
 void setup() {
 	init_debug();
+
+	STEP step = steps[0];
+	servo.setSpeed(step.speed);
 	servo.attach(SERVO_PIN);
+	servo.write(step.pos);
+
 
 	for (int i = 0; i < anzahlTaster; i++) {
 		pinMode(tasterPinNr[i], INPUT_PULLUP);
 	}
+
+	pinMode(READY_LED_PIN, OUTPUT);
+	off();
 }
 
-struct STEP {
-	int pos;
-	int speed;
-	int delay;
-};
 
-STEP steps[] = { { 40, 40, 5 }, { 120, 10, 5 }, { 150, 20, 5 }, { 90, 30, 5 } };
-size_t length = sizeof(steps) / sizeof(steps[0]);
+
+
 enum STATE {
 	START = 1, WAIT = 2, DELAY = 3, NEXT = 4, STOP = 5
 };
@@ -102,9 +125,12 @@ void loop() {
 		break;
 	case STOP:
 		if (Taster1.pressed(0)) {
+			off();
 			Serial.println("PRESSED");
 			state = START;
 			counter = 0;
+		} else {
+			on();
 		}
 		break;
 	}
